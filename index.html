@@ -408,6 +408,8 @@
         let selectedAccountId = null;
         let isAuthReady = false; // Flag to ensure Firestore operations only happen after auth
 
+        const geminiApiKey = typeof __gemini_api_key !== 'undefined' ? __gemini_api_key : '';
+
         // DOM elements
         const userIdEl = document.getElementById('user-id');
         const newAccountNameEl = document.getElementById('new-account-name');
@@ -485,7 +487,7 @@
         } else {
             console.error("Firebase config not found. Data persistence will not work.");
             userIdEl.textContent = "Firebase Not Configured (Local Mode)";
-            displayMessage("Firebase কনফিগার করা হয়নি। ডেটা সংরক্ষণ কাজ করবে না।", "error");
+            displayMessage("Firebase কনফিগার করা হয়নি। ডেটা সংরক্ষণ এবং AI বৈশিষ্ট্যগুলি (বিশ্লেষণ, ক্যাটাগরি সাজেশন) কাজ নাও করতে পারে।", "error", 5000);
             // Disable features that rely on Firebase
             addIncomeBtn.disabled = true;
             expenseAmountEl.disabled = true;
@@ -745,6 +747,14 @@
 
         // Function to analyze spending using Gemini API
         async function analyzeSpending() {
+            const apiKey = geminiApiKey;
+            if (!apiKey) {
+                spendingAnalysisOutputEl.innerHTML = '<p class="text-red-500">Gemini API কী সংজ্ঞায়িত করা নেই। বিশ্লেষণ বৈশিষ্ট্য নিষ্ক্রিয় করা হয়েছে।</p>';
+                analyzeTextEl.classList.remove('hidden');
+                analyzeSpinnerEl.classList.add('hidden');
+                analyzeSpendingBtn.disabled = false;
+                return;
+            }
             const transactionsForAnalysis = allTransactions.filter(t => t.accountId === selectedAccountId);
 
             if (transactionsForAnalysis.length === 0) {
@@ -768,7 +778,6 @@
             chatHistory.push({ role: "user", parts: [{ text: prompt }] });
 
             const payload = { contents: chatHistory };
-            const apiKey = ""; // Canvas will automatically provide the API key. For local deployment, you might need to provide your own API key here.
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
             try {
@@ -800,14 +809,22 @@
 
         // Function to suggest a category using Gemini API
         async function suggestCategory(descriptionElement, categoryElement) {
+            const apiKey = geminiApiKey;
+            const originalButtonText = categoryElement === incomeCategoryEl ? suggestIncomeCategoryBtn.innerHTML : suggestExpenseCategoryBtn.innerHTML;
+            const buttonToUpdate = categoryElement === incomeCategoryEl ? suggestIncomeCategoryBtn : suggestExpenseCategoryBtn;
+
+            if (!apiKey) {
+                displayMessage("Gemini API কী সংজ্ঞায়িত করা নেই। ক্যাটাগরি সাজেশন নিষ্ক্রিয় করা হয়েছে।", "error");
+                buttonToUpdate.disabled = false;
+                buttonToUpdate.innerHTML = originalButtonText;
+                return;
+            }
+
             const description = descriptionElement.value.trim();
             if (!description) {
                 displayMessage("ক্যাটাগরি সাজেস্ট করার জন্য একটি বিবরণ লিখুন।", "error");
                 return;
             }
-
-            const originalButtonText = categoryElement === incomeCategoryEl ? suggestIncomeCategoryBtn.innerHTML : suggestExpenseCategoryBtn.innerHTML;
-            const buttonToUpdate = categoryElement === incomeCategoryEl ? suggestIncomeCategoryBtn : suggestExpenseCategoryBtn;
 
             buttonToUpdate.disabled = true;
             buttonToUpdate.innerHTML = `<span class="loading-spinner"></span> লোড হচ্ছে...`;
@@ -819,7 +836,6 @@
             chatHistory.push({ role: "user", parts: [{ text: prompt }] });
 
             const payload = { contents: chatHistory };
-            const apiKey = ""; // Canvas will automatically provide the API key.
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
             try {
