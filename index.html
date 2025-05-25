@@ -469,7 +469,35 @@
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
 
-        if (Object.keys(firebaseConfig).length > 0) {
+        // Function to disable Firebase-dependent features
+        function disableFirebaseFeatures() {
+            addIncomeBtn.disabled = true;
+            expenseAmountEl.disabled = true; // This is an input, maybe meant expenseDescriptionEl or amount? Assuming amount.
+            addExpenseBtn.disabled = true;
+            incomeDescriptionEl.disabled = true;
+            incomeAmountEl.disabled = true;
+            expenseDescriptionEl.disabled = true; // Corrected from expenseAmountEl if it was a typo for description
+            // expenseAmountEl itself is an input, so disabling it is fine.
+            analyzeSpendingBtn.disabled = true;
+            addnewAccountBtn.disabled = true;
+            accountSelectEl.disabled = true;
+            exportCsvBtn.disabled = true;
+            suggestIncomeCategoryBtn.disabled = true;
+            suggestExpenseCategoryBtn.disabled = true;
+            incomeCategoryEl.disabled = true;
+            expenseCategoryEl.disabled = true;
+            // Also hide loading transactions message as it's Firebase dependent
+            if (loadingTransactionsEl) {
+                loadingTransactionsEl.textContent = "Firebase-ভিত্তিক বৈশিষ্ট্যগুলি নিষ্ক্রিয় করা হয়েছে।";
+            }
+        }
+
+        if (firebaseConfig.apiKey === "YOUR_API_KEY") {
+            console.log("Placeholder Firebase config detected. Skipping Firebase initialization. App will run in Local Mode.");
+            userIdEl.textContent = "Firebase not configured. See README. Local Mode.";
+            displayMessage("Firebase is not configured with your actual project details. Please refer to the README.md for instructions on setting up Firebase if you want to save data and use AI features. The app is currently in Local Mode, and data will not be saved.", "error", 10000);
+            disableFirebaseFeatures();
+        } else if (Object.keys(firebaseConfig).length > 0) {
             const app = initializeApp(firebaseConfig);
             db = getFirestore(app);
             auth = getAuth(app);
@@ -501,21 +529,7 @@
             console.error("Firebase config not found. Data persistence will not work.");
             userIdEl.textContent = "Firebase Not Configured (Local Mode)";
             displayMessage("Firebase কনফিগার করা হয়নি। ডেটা সংরক্ষণ এবং AI বৈশিষ্ট্যগুলি (বিশ্লেষণ, ক্যাটাগরি সাজেশন) কাজ নাও করতে পারে।", "error", 5000);
-            // Disable features that rely on Firebase
-            addIncomeBtn.disabled = true;
-            expenseAmountEl.disabled = true;
-            addExpenseBtn.disabled = true;
-            incomeDescriptionEl.disabled = true;
-            incomeAmountEl.disabled = true;
-            expenseDescriptionEl.disabled = true;
-            analyzeSpendingBtn.disabled = true;
-            addnewAccountBtn.disabled = true;
-            accountSelectEl.disabled = true;
-            exportCsvBtn.disabled = true; // Disable export button too
-            suggestIncomeCategoryBtn.disabled = true; // Disable new buttons
-            suggestExpenseCategoryBtn.disabled = true;
-            incomeCategoryEl.disabled = true;
-            expenseCategoryEl.disabled = true;
+            disableFirebaseFeatures();
         }
 
         // Helper function to display messages to the user
