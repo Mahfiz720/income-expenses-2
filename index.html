@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>আয়-ব্যয় ট্র্যাকার</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* CSS Variables for Light Mode (Default) */
+        :root {
+            --bg-primary: #f3f4f6; /* Light gray background */
+            --bg-secondary: #ffffff; /* Card/section background */
+            --text-primary: #1f2937; /* Dark gray text */
+            --text-secondary: #4b5563; /* Medium gray text */
+            --border-color: #d1d5db; /* Light gray border */
+            --income-section-bg: #ecfdf5; /* Green-50 */
+            --income-text-color: #047857; /* Green-700 */
+            --expense-section-bg: #fef2f2; /* Red-50 */
+            --expense-text-color: #b91c1c; /* Red-700 */
+            --balance-section-bg: #eff6ff; /* Blue-100 */
+            --balance-text-color: #1e40af; /* Blue-800 */
+            --balance-amount-color: #1e3a8a; /* Blue-900 */
+            --transaction-item-bg: #f9fafb; /* Lighter background for items */
+            --transaction-item-border-income: #10b981; /* Green for income border */
+            --transaction-item-border-expense: #ef4444; /* Red for expense border */
+            --delete-btn-color: #9ca3af; /* Gray for delete icon */
+            --message-error-bg: #fee2e2; /* Red-100 */
+            --message-error-text: #dc2626; /* Red-600 */
+            --message-error-border: #fca5a5; /* Red-300 */
+            --message-success-bg: #d1fae5; /* Green-100 */
+            --message-success-text: #059669; /* Green-600 */
+            --message-success-border: #6ee7b7; /* Green-300 */
+            --purple-btn-bg: #6b46c1; /* Purple-600 */
+            --purple-btn-hover-bg: #5a32a3; /* Purple-700 */
+            --code-bg: #e2e8f0; /* Blue Gray 200 */
+            --code-text: #1a202c; /* Gray 900 */
+        }
+
+        /* CSS Variables for Dark Mode */
+        body.dark-mode {
+            --bg-primary: #1f2937; /* Dark background */
+            --bg-secondary: #374151; /* Darker card/section background */
+            --text-primary: #f9fafb; /* Light text */
+            --text-secondary: #d1d5db; /* Lighter gray text */
+            --border-color: #4b5563; /* Darker gray border */
+            --income-section-bg: #115e59; /* Teal-800 */
+            --income-text-color: #ccfbf1; /* Teal-100 */
+            --expense-section-bg: #7f1d1d; /* Red-900 */
+            --expense-text-color: #fee2e2; /* Red-100 */
+            --balance-section-bg: #1e3a8a; /* Blue-900 */
+            --balance-text-color: #bfdbfe; /* Blue-200 */
+            --balance-amount-color: #93c5fd; /* Blue-300 */
+            --transaction-item-bg: #4b5563; /* Darker background for items */
+            --transaction-item-border-income: #34d399; /* Light green for income border */
+            --transaction-item-border-expense: #f87171; /* Light red for expense border */
+            --delete-btn-color: #d1d5db; /* Light gray for delete icon */
+            --message-error-bg: #450a0a; /* Red-950 */
+            --message-error-text: #fca5a5; /* Red-300 */
+            --message-error-border: #ef4444; /* Red-500 */
+            --message-success-bg: #065f46; /* Green-900 */
+            --message-success-text: #a7f3d0; /* Green-200 */
+            --message-success-border: #34d399; /* Green-500 */
+            --purple-btn-bg: #5b21b6; /* Violet-700 */
+            --purple-btn-hover-bg: #4c1d95; /* Violet-800 */
+            --code-bg: #2d3748; /* Gray 800 */
+            --code-text: #f7fafc; /* Gray 100 */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .container {
+            background-color: var(--bg-secondary);
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            max-width: 90%;
+            margin: 2rem auto;
+            padding: 1.5rem;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .input-field {
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            width: 100%;
+            box-sizing: border-box;
+            background-color: var(--bg-secondary); /* Ensure input background changes */
+            color: var(--text-primary); /* Ensure input text color changes */
+            transition: border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+            width: 100%;
+        }
+        .btn-income {
+            background-color: #10b981; /* Green for income */
+            color: #ffffff;
+        }
+        .btn-income:hover {
+            background-color: #059669; /* Darker green on hover */
+        }
+        .btn-expense {
+            background-color: #ef4444; /* Red for expense */
+            color: #ffffff;
+        }
+        .btn-expense:hover {
+            background-color: #dc2626; /* Darker red on hover */
+        }
+        .btn-analyze {
+            background-color: #3b82f6; /* Blue for analyze button */
+            color: #ffffff;
+            margin-top: 1rem;
+        }
+        .btn-analyze:hover {
+            background-color: #2563eb; /* Darker blue on hover */
+        }
+        .btn-export {
+            background-color: #f59e0b; /* Amber for export button */
+            color: #ffffff;
+            margin-top: 1rem;
+        }
+        .btn-export:hover {
+            background-color: #d97706; /* Darker amber on hover */
+        }
+        .btn-suggest-category {
+            background-color: var(--purple-btn-bg);
+            color: #ffffff;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+            margin-top: 0.5rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: auto;
+        }
+        .btn-suggest-category:hover {
+            background-color: var(--purple-btn-hover-bg);
+        }
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            background-color: var(--transaction-item-bg);
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .transaction-item.income {
+            border-left: 5px solid var(--transaction-item-border-income);
+        }
+        .transaction-item.expense {
+            border-left: 5px solid var(--transaction-item-border-expense);
+        }
+        .delete-btn {
+            background: none;
+            border: none;
+            color: var(--delete-btn-color);
+            font-size: 1.25rem;
+            cursor: pointer;
+            transition: color 0.2s ease-in-out;
+        }
+        .delete-btn:hover {
+            color: var(--transaction-item-border-expense); /* Red on hover */
+        }
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #3b82f6;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive adjustments */
+        @media (min-width: 640px) { /* Small screens and up */
+            .container {
+                max-width: 80%;
+            }
+            .form-grid {
+                grid-template-columns: 1fr 1fr; /* Two columns for forms */
+                gap: 1.5rem;
+            }
+            .btn {
+                width: auto; /* Buttons can be auto width */
+            }
+            .btn-suggest-category {
+                width: auto;
+            }
+        }
+
+        @media (min-width: 768px) { /* Medium screens and up */
+            .container {
+                max-width: 600px; /* Fixed max width for larger screens */
+            }
+        }
+
+        /* Message display styles */
+        .message-display {
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            font-weight: 500;
+            background-color: var(--message-error-bg); /* Default to error background */
+            color: var(--message-error-text); /* Default to error text */
+            border: 1px solid var(--message-error-border); /* Default to error border */
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+        .message-display.success {
+            background-color: var(--message-success-bg);
+            color: var(--message-success-text);
+            border: 1px solid var(--message-success-border);
+        }
+
+        /* Specific element color overrides using variables */
+        .text-gray-800 { color: var(--text-primary); }
+        .text-gray-600 { color: var(--text-secondary); }
+        .text-blue-800 { color: var(--balance-text-color); }
+        .text-blue-900 { color: var(--balance-amount-color); }
+        .text-green-700 { color: var(--income-text-color); }
+        .text-red-700 { color: var(--expense-text-color); }
+        .bg-blue-100 { background-color: var(--balance-section-bg); }
+        .bg-green-50 { background-color: var(--income-section-bg); }
+        .bg-red-50 { background-color: var(--expense-section-bg); }
+        .bg-purple-50 { background-color: var(--income-section-bg); } /* Using income-section-bg for account management */
+        .text-purple-700 { color: var(--income-text-color); } /* Using income-text-color for account management */
+        .bg-gray-50 { background-color: var(--transaction-item-bg); } /* For analysis output box */
+        .text-gray-700 { color: var(--text-secondary); } /* For analysis output text */
+        .text-red-500 { color: var(--transaction-item-border-expense); } /* For error messages in output */
+        .text-gray-500 { color: var(--text-secondary); } /* For loading messages */
+        .text-green-600 { color: var(--transaction-item-border-income); } /* For income amount in list */
+        .text-red-600 { color: var(--transaction-item-border-expense); } /* For expense amount in list */
+        .border-gray-200 { border-color: var(--border-color); }
+
+        /* Dark mode toggle button style */
+        #dark-mode-toggle {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+        }
+        #dark-mode-toggle:hover {
+            background-color: var(--border-color);
+        }
+
+        /* Code section specific styles */
+        #full-code-section {
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+        #full-code-textarea {
+            width: 100%;
+            height: 400px; /* Fixed height, can be scrolled */
+            background-color: var(--code-bg);
+            color: var(--code-text);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            font-family: monospace;
+            font-size: 0.875rem;
+            resize: vertical; /* Allow vertical resizing */
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+        .btn-copy-code {
+            background-color: #1d4ed8; /* Blue-700 */
+            color: #ffffff;
+            margin-top: 1rem;
+        }
+        .btn-copy-code:hover {
+            background-color: #1e40af; /* Blue-800 */
+        }
+        .btn-toggle-code {
+            background-color: #4f46e5; /* Indigo-600 */
+            color: #ffffff;
+        }
+        .btn-toggle-code:hover {
+            background-color: #4338ca; /* Indigo-700 */
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+    <button id="dark-mode-toggle">
+        <span id="theme-icon">☀️</span>
+        <span id="theme-text">ডার্ক মোড</span>
+    </button>
+
+    <div class="container">
+        <h1 class="text-3xl font-bold text-center mb-6">আয়-ব্যয় ট্র্যাকার</h1>
+
+        <div class="text-sm text-center mb-4">
+            আপনার ইউজার আইডি: <span id="user-id" class="font-mono break-all">লোডিং...</span>
+        </div>
+
+        <div id="message-display" class="message-display hidden"></div>
+
+        <div class="bg-purple-50 p-4 rounded-lg mb-6 shadow-sm">
+            <h3 class="text-lg font-semibold mb-3">একাউন্ট ম্যানেজমেন্ট</h3>
+            <div class="flex flex-col sm:flex-row gap-3 mb-4">
+                <input type="text" id="new-account-name" placeholder="নতুন একাউন্টের নাম" class="input-field flex-grow">
+                <button id="add-new-account-btn" class="btn bg-purple-600 text-white hover:bg-purple-700">একাউন্ট যোগ করুন</button>
+            </div>
+            <div class="flex items-center gap-3">
+                <label for="account-select" class="font-medium">একাউন্ট নির্বাচন করুন:</label>
+                <select id="account-select" class="input-field flex-grow">
+                    </select>
+            </div>
+            <p class="text-sm mt-2">বর্তমান নির্বাচিত একাউন্ট: <span id="current-selected-account-name" class="font-semibold">কোনো একাউন্ট নির্বাচিত নেই</span></p>
+        </div>
+
+        <div class="bg-blue-100 p-4 rounded-lg mb-6 text-center">
+            <h2 class="text-xl font-semibold">বর্তমান ব্যালেন্স (<span id="balance-account-name">নির্বাচিত একাউন্ট</span>):</h2>
+            <p id="balance" class="text-4xl font-bold mt-2">৳ 0.00</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 form-grid">
+            <div class="bg-green-50 p-4 rounded-lg shadow-sm">
+                <h3 class="text-lg font-semibold mb-3">আয় যোগ করুন</h3>
+                <input type="text" id="income-description" placeholder="আয়ের বিবরণ" class="input-field mb-3">
+                <button id="suggest-income-category-btn" class="btn-suggest-category">ক্যাটাগরি সাজেস্ট করুন ✨</button>
+                <input type="text" id="income-category" placeholder="ক্যাটাগরি (ঐচ্ছিক)" class="input-field mt-3 mb-3">
+                <input type="number" id="income-amount" placeholder="পরিমাণ (৳)" class="input-field mb-3">
+                <button id="add-income" class="btn btn-income">আয় যোগ করুন</button>
+            </div>
+
+            <div class="bg-red-50 p-4 rounded-lg shadow-sm">
+                <h3 class="text-lg font-semibold mb-3">ব্যয় যোগ করুন</h3>
+                <input type="text" id="expense-description" placeholder="ব্যয়ের বিবরণ" class="input-field mb-3">
+                <button id="suggest-expense-category-btn" class="btn-suggest-category">ক্যাটাগরি সাজেস্ট করুন ✨</button>
+                <input type="text" id="expense-category" placeholder="ক্যাটাগরি (ঐচ্ছিক)" class="input-field mt-3 mb-3">
+                <input type="number" id="expense-amount" placeholder="পরিমাণ (৳)" class="input-field mb-3">
+                <button id="add-expense" class="btn btn-expense">ব্যয় যোগ করুন</button>
+            </div>
+        </div>
+
+        <div>
+            <h2 class="text-2xl font-semibold mb-4">লেনদেনের ইতিহাস (<span id="transactions-account-name">নির্বাচিত একাউন্ট</span>)</h2>
+            <div id="transactions-list" class="space-y-3">
+                <p id="loading-transactions" class="text-gray-500 text-center">লেনদেন লোড হচ্ছে...</p>
+            </div>
+        </div>
+
+        <div class="mt-8 pt-6 border-t border-gray-200 flex flex-col sm:flex-row gap-4">
+            <button id="analyze-spending-btn" class="btn btn-analyze flex items-center justify-center flex-grow">
+                <span id="analyze-text">ব্যয়ের অভ্যাস বিশ্লেষণ করুন ✨</span>
+                <span id="analyze-spinner" class="loading-spinner hidden"></span>
+            </button>
+            <button id="export-csv-btn" class="btn btn-export flex items-center justify-center flex-grow">
+                <span>CSV এক্সপোর্ট করুন 📊</span>
+            </button>
+        </div>
+        <div id="spending-analysis-output" class="bg-gray-50 p-4 rounded-lg mt-4 leading-relaxed">
+            আপনার ব্যয়ের অভ্যাস বিশ্লেষণ করতে উপরের "ব্যয়ের অভ্যাস বিশ্লেষণ করুন ✨" বাটনে ক্লিক করুন।
+        </div>
+
+        <div id="full-code-section">
+            <h2 class="text-2xl font-semibold mb-4">সম্পূর্ণ কোড কপি করুন</h2>
+            <button id="toggle-code-btn" class="btn btn-toggle-code flex items-center justify-center mb-4">
+                <span>কোড দেখান/লুকান</span>
+            </button>
+            <div id="code-container" class="hidden">
+                <textarea id="full-code-textarea" readonly></textarea>
+                <button id="copy-code-btn" class="btn btn-copy-code">কপি করুন</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Firebase imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, query, onSnapshot, addDoc, deleteDoc, doc, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        let db;
+        let auth;
+        let currentUserId = null;
+        let allTransactions = []; // All transactions fetched from Firestore
+        let accounts = []; // All accounts fetched from Firestore
+        let selectedAccountId = null;
+        let isAuthReady = false; // Flag to ensure Firestore operations only happen after auth
+
+        // DOM elements
+        const userIdEl = document.getElementById('user-id');
+        const newAccountNameEl = document.getElementById('new-account-name');
+        const addnewAccountBtn = document.getElementById('add-new-account-btn');
+        const accountSelectEl = document.getElementById('account-select');
+        const currentSelectedAccountNameEl = document.getElementById('current-selected-account-name');
+        const balanceEl = document.getElementById('balance');
+        const balanceAccountNameEl = document.getElementById('balance-account-name');
+
+        const incomeDescriptionEl = document.getElementById('income-description');
+        const suggestIncomeCategoryBtn = document.getElementById('suggest-income-category-btn');
+        const incomeCategoryEl = document.getElementById('income-category');
+        const incomeAmountEl = document.getElementById('income-amount');
+        const addIncomeBtn = document.getElementById('add-income');
+
+        const expenseDescriptionEl = document.getElementById('expense-description');
+        const suggestExpenseCategoryBtn = document.getElementById('suggest-expense-category-btn');
+        const expenseCategoryEl = document.getElementById('expense-category');
+        const expenseAmountEl = document.getElementById('expense-amount');
+        const addExpenseBtn = document.getElementById('add-expense');
+
+        const transactionsListEl = document.getElementById('transactions-list');
+        const transactionsAccountNameEl = document.getElementById('transactions-account-name');
+        const analyzeSpendingBtn = document.getElementById('analyze-spending-btn');
+        const analyzeTextEl = document.getElementById('analyze-text');
+        const analyzeSpinnerEl = document.getElementById('analyze-spinner');
+        const spendingAnalysisOutputEl = document.getElementById('spending-analysis-output');
+        const loadingTransactionsEl = document.getElementById('loading-transactions');
+        const messageDisplayEl = document.getElementById('message-display'); // New message display element
+        const exportCsvBtn = document.getElementById('export-csv-btn'); // New export button
+
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const themeText = document.getElementById('theme-text');
+
+        // New elements for code section
+        const toggleCodeBtn = document.getElementById('toggle-code-btn');
+        const codeContainer = document.getElementById('code-container');
+        const fullCodeTextarea = document.getElementById('full-code-textarea');
+        const copyCodeBtn = document.getElementById('copy-code-btn');
+
+
+        // Initialize Firebase
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+
+        if (Object.keys(firebaseConfig).length > 0) {
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+
+            // Listen for authentication state changes
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    currentUserId = user.uid;
+                    userIdEl.textContent = currentUserId;
+                    console.log("Authenticated with user ID:", currentUserId);
+                    isAuthReady = true;
+                    setupFirestoreListeners(); // Setup listeners after auth is ready
+                } else {
+                    // Sign in anonymously if no user is logged in and no initial token
+                    try {
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            await signInWithCustomToken(auth, __initial_auth_token);
+                        } else {
+                            await signInAnonymously(auth);
+                        }
+                    } catch (error) {
+                        console.error("Firebase authentication error:", error);
+                        userIdEl.textContent = "Authentication Failed";
+                        displayMessage("Firebase প্রমাণীকরণে সমস্যা হয়েছে।", "error");
+                    }
+                }
+            });
+        } else {
+            console.error("Firebase config not found. Data persistence will not work.");
+            userIdEl.textContent = "Firebase Not Configured (Local Mode)";
+            displayMessage("Firebase কনফিগার করা হয়নি। ডেটা সংরক্ষণ কাজ করবে না।", "error");
+            // Disable features that rely on Firebase
+            addIncomeBtn.disabled = true;
+            expenseAmountEl.disabled = true;
+            addExpenseBtn.disabled = true;
+            incomeDescriptionEl.disabled = true;
+            incomeAmountEl.disabled = true;
+            expenseDescriptionEl.disabled = true;
+            analyzeSpendingBtn.disabled = true;
+            addnewAccountBtn.disabled = true;
+            accountSelectEl.disabled = true;
+            exportCsvBtn.disabled = true; // Disable export button too
+            suggestIncomeCategoryBtn.disabled = true; // Disable new buttons
+            suggestExpenseCategoryBtn.disabled = true;
+            incomeCategoryEl.disabled = true;
+            expenseCategoryEl.disabled = true;
+        }
+
+        // Helper function to display messages to the user
+        function displayMessage(message, type = 'info', duration = 3000) {
+            messageDisplayEl.textContent = message;
+            messageDisplayEl.className = `message-display ${type}`; // Reset classes and add new type
+            messageDisplayEl.classList.remove('hidden');
+
+            setTimeout(() => {
+                messageDisplayEl.classList.add('hidden');
+                messageDisplayEl.textContent = '';
+            }, duration);
+        }
+
+        // Function to set up real-time listeners for accounts and transactions
+        function setupFirestoreListeners() {
+            if (!db || !currentUserId || !isAuthReady) {
+                console.log("Firestore or user not ready for listener setup.");
+                return;
+            }
+
+            // Listen for accounts
+            const accountsCollectionRef = collection(db, `artifacts/${appId}/users/${currentUserId}/accounts`);
+            onSnapshot(accountsCollectionRef, (snapshot) => {
+                accounts = [];
+                snapshot.forEach((doc) => {
+                    accounts.push({ id: doc.id, ...doc.data() });
+                });
+                renderAccountSelect();
+                // If no account is selected, or selected account was deleted, default to first account
+                if (!selectedAccountId || !accounts.some(acc => acc.id === selectedAccountId)) {
+                    selectedAccountId = accounts.length > 0 ? accounts[0].id : null;
+                }
+                accountSelectEl.value = selectedAccountId || ''; // Set dropdown value
+                updateSelectedAccountDisplay();
+                filterAndRenderTransactions(); // Re-render transactions based on new account list
+            }, (error) => {
+                console.error("Error fetching accounts from Firestore:", error);
+                displayMessage("একাউন্ট লোড করতে সমস্যা হয়েছে।", "error");
+            });
+
+            // Listen for all transactions (we will filter client-side for selected account)
+            const transactionsCollectionRef = collection(db, `artifacts/${appId}/users/${currentUserId}/transactions`);
+            onSnapshot(transactionsCollectionRef, (snapshot) => {
+                loadingTransactionsEl.classList.add('hidden'); // Hide loading message
+                allTransactions = [];
+                snapshot.forEach((doc) => {
+                    allTransactions.push({ id: doc.id, ...doc.data() });
+                });
+                filterAndRenderTransactions(); // Filter and render when all transactions update
+            }, (error) => {
+                console.error("Error fetching transactions from Firestore:", error);
+                displayMessage("লেনদেন লোড করতে সমস্যা হয়েছে।", "error");
+            });
+        }
+
+        // Function to render accounts in the select dropdown
+        function renderAccountSelect() {
+            accountSelectEl.innerHTML = '';
+            if (accounts.length === 0) {
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'কোনো একাউন্ট নেই';
+                option.disabled = true;
+                option.selected = true;
+                accountSelectEl.appendChild(option);
+                // Disable transaction forms if no accounts
+                addIncomeBtn.disabled = true;
+                expenseAmountEl.disabled = true;
+                addExpenseBtn.disabled = true;
+                incomeDescriptionEl.disabled = true;
+                incomeAmountEl.disabled = true;
+                expenseDescriptionEl.disabled = true;
+                analyzeSpendingBtn.disabled = true;
+                exportCsvBtn.disabled = true; // Disable export button
+                suggestIncomeCategoryBtn.disabled = true; // Disable new buttons
+                suggestExpenseCategoryBtn.disabled = true;
+                incomeCategoryEl.disabled = true;
+                expenseCategoryEl.disabled = true;
+                return;
+            } else {
+                addIncomeBtn.disabled = false;
+                expenseAmountEl.disabled = false;
+                addExpenseBtn.disabled = false;
+                incomeDescriptionEl.disabled = false;
+                incomeAmountEl.disabled = false;
+                expenseDescriptionEl.disabled = false;
+                analyzeSpendingBtn.disabled = false;
+                exportCsvBtn.disabled = false; // Enable export button
+                suggestIncomeCategoryBtn.disabled = false; // Enable new buttons
+                suggestExpenseCategoryBtn.disabled = false;
+                incomeCategoryEl.disabled = false;
+                expenseCategoryEl.disabled = false;
+            }
+
+            accounts.forEach(account => {
+                const option = document.createElement('option');
+                option.value = account.id;
+                option.textContent = account.name;
+                accountSelectEl.appendChild(option);
+            });
+            accountSelectEl.value = selectedAccountId; // Ensure selected account is set
+        }
+
+        // Function to update the displayed selected account name
+        function updateSelectedAccountDisplay() {
+            const selectedAccount = accounts.find(acc => acc.id === selectedAccountId);
+            currentSelectedAccountNameEl.textContent = selectedAccount ? selectedAccount.name : 'কোনো একাউন্ট নির্বাচিত নেই';
+            balanceAccountNameEl.textContent = selectedAccount ? selectedAccount.name : 'নির্বাচিত একাউন্ট';
+            transactionsAccountNameEl.textContent = selectedAccount ? selectedAccount.name : 'নির্বাচিত একাউন্ট';
+        }
+
+        // Function to filter transactions by selected account and render them
+        function filterAndRenderTransactions() {
+            let filteredTransactions = [];
+            if (selectedAccountId) {
+                filteredTransactions = allTransactions.filter(t => t.accountId === selectedAccountId);
+            }
+
+            // Sort transactions by timestamp for consistent display
+            filteredTransactions.sort((a, b) => a.timestamp - b.timestamp);
+
+            transactionsListEl.innerHTML = ''; // Clear previous list
+            let currentBalance = 0;
+
+            if (filteredTransactions.length === 0) {
+                transactionsListEl.innerHTML = '<p class="text-gray-500 text-center">এই একাউন্টে কোনো লেনদেন নেই।</p>';
+            } else {
+                filteredTransactions.forEach(transaction => {
+                    const transactionItem = document.createElement('div');
+                    transactionItem.classList.add('transaction-item', transaction.type === 'income' ? 'income' : 'expense');
+
+                    const sign = transaction.type === 'income' ? '+' : '-';
+                    const amountClass = transaction.type === 'income' ? 'text-green-600' : 'text-red-600';
+
+                    // Format timestamp to a readable date string
+                    const date = new Date(transaction.timestamp);
+                    const formattedDate = date.toLocaleDateString('bn-BD', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+
+                    transactionItem.innerHTML = `
+                        <div class="flex-grow">
+                            <span class="font-medium text-gray-700">${transaction.description}</span>
+                            <span class="text-sm text-gray-500 block">${formattedDate} - ${transaction.category || 'অশ্রেণীবদ্ধ'}</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="font-semibold ${amountClass}">${sign} ৳ ${transaction.amount.toFixed(2)}</span>
+                            <button class="delete-btn ml-4" data-id="${transaction.id}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm6 0a1 1 0 11-2 0v6a1 1 0 112 0V8z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                        </div>
+                    `;
+                    transactionsListEl.appendChild(transactionItem);
+
+                    if (transaction.type === 'income') {
+                        currentBalance += transaction.amount;
+                    } else {
+                        currentBalance -= transaction.amount;
+                    }
+                });
+            }
+            balanceEl.textContent = `৳ ${currentBalance.toFixed(2)}`;
+        }
+
+        // Function to add a new account
+        async function addAccount() {
+            const accountName = newAccountNameEl.value.trim();
+            if (!accountName) {
+                displayMessage("অনুগ্রহ করে একাউন্টের নাম লিখুন।", "error");
+                return;
+            }
+            if (!isAuthReady || !currentUserId) {
+                displayMessage("প্রমাণীকরণ প্রস্তুত নয়। একাউন্ট যোগ করা যাবে না।", "error");
+                return;
+            }
+
+            try {
+                const accountData = {
+                    name: accountName,
+                    createdAt: Date.now()
+                };
+                await addDoc(collection(db, `artifacts/${appId}/users/${currentUserId}/accounts`), accountData);
+                newAccountNameEl.value = '';
+                displayMessage("একাউন্ট সফলভাবে যোগ করা হয়েছে!", "success");
+                console.log("Account added to Firestore.");
+            } catch (e) {
+                console.error("Error adding account: ", e);
+                displayMessage("একাউন্ট যোগ করতে সমস্যা হয়েছে।", "error");
+            }
+        }
+
+        // Function to add a new transaction
+        async function addTransaction(description, amount, type, category) {
+            if (!description || !amount || parseFloat(amount) <= 0) {
+                displayMessage("অনুগ্রহ করে বিবরণ এবং একটি বৈধ পরিমাণ লিখুন।", "error");
+                return;
+            }
+            if (!isAuthReady || !currentUserId || !selectedAccountId) {
+                displayMessage("প্রমাণীকরণ বা একাউন্ট প্রস্তুত নয়। লেনদেন যোগ করা যাবে না।", "error");
+                return;
+            }
+
+            try {
+                const transactionData = {
+                    description,
+                    amount: parseFloat(amount),
+                    type,
+                    category: category || 'অশ্রেণীবদ্ধ', // Default category if not provided
+                    timestamp: Date.now(),
+                    accountId: selectedAccountId // Associate with the selected account
+                };
+                await addDoc(collection(db, `artifacts/${appId}/users/${currentUserId}/transactions`), transactionData);
+                displayMessage("লেনদেন সফলভাবে যোগ করা হয়েছে!", "success");
+                console.log("Transaction added to Firestore.");
+            } catch (e) {
+                console.error("Error adding document: ", e);
+                displayMessage("লেনদেন যোগ করতে সমস্যা হয়েছে।", "error");
+            }
+        }
+
+        // Function to delete a transaction
+        async function deleteTransaction(id) {
+            if (!isAuthReady || !currentUserId) {
+                displayMessage("প্রমাণীকরণ প্রস্তুত নয়। লেনদেন মুছে ফেলা যাবে না।", "error");
+                return;
+            }
+
+            try {
+                await deleteDoc(doc(db, `artifacts/${appId}/users/${currentUserId}/transactions`, id));
+                displayMessage("লেনদেন সফলভাবে মুছে ফেলা হয়েছে!", "success");
+                console.log("Transaction deleted from Firestore.");
+            } catch (e) {
+                console.error("Error removing document: ", e);
+                displayMessage("লেনদেন মুছে ফেলতে সমস্যা হয়েছে।", "error");
+            }
+        }
+
+        // Function to analyze spending using Gemini API
+        async function analyzeSpending() {
+            const transactionsForAnalysis = allTransactions.filter(t => t.accountId === selectedAccountId);
+
+            if (transactionsForAnalysis.length === 0) {
+                spendingAnalysisOutputEl.innerHTML = '<p class="text-red-500">এই একাউন্টে কোনো লেনদেন নেই। বিশ্লেষণ করার জন্য কিছু আয় বা ব্যয় যোগ করুন।</p>';
+                return;
+            }
+
+            analyzeTextEl.classList.add('hidden');
+            analyzeSpinnerEl.classList.remove('hidden');
+            analyzeSpendingBtn.disabled = true;
+            spendingAnalysisOutputEl.innerHTML = '<p class="text-gray-500">বিশ্লেষণ করা হচ্ছে... অনুগ্রহ করে অপেক্ষা করুন।</p>';
+
+            const transactionSummary = transactionsForAnalysis.map(t => {
+                const date = new Date(t.timestamp).toLocaleDateString('bn-BD');
+                return `${date} - ${t.type === 'income' ? 'আয়' : 'ব্যয়'}: ${t.description} (ক্যাটাগরি: ${t.category || 'অশ্রেণীবদ্ধ'}) - ৳${t.amount.toFixed(2)}`;
+            }).join('\n');
+
+            const prompt = `এখানে আমার বর্তমান নির্বাচিত একাউন্টের আয় এবং ব্যয়ের লেনদেনগুলি রয়েছে:\n${transactionSummary}\n\nআমার ব্যয়ের অভ্যাস বিশ্লেষণ করুন এবং অর্থ সাশ্রয়ের জন্য কিছু কার্যকর টিপস দিন। যদি কোনো ব্যয়ের ধরণ থাকে, তবে সেগুলোর উপর মনোযোগ দিন। বাংলায় উত্তর দিন।`;
+
+            let chatHistory = [];
+            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+            const payload = { contents: chatHistory };
+            const apiKey = ""; // Canvas will automatically provide the API key. For local deployment, you might need to provide your own API key here.
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    spendingAnalysisOutputEl.innerHTML = `<p>${text}</p>`;
+                } else {
+                    spendingAnalysisOutputEl.innerHTML = '<p class="text-red-500">বিশ্লেষণ পেতে ব্যর্থ। অনুগ্রহ করে আবার চেষ্টা করুন।</p>';
+                    console.error("LLM প্রতিক্রিয়া অপ্রত্যাশিত কাঠামোতে এসেছে:", result);
+                }
+            } catch (error) {
+                    spendingAnalysisOutputEl.innerHTML = '<p class="text-red-500">বিশ্লেষণ পেতে ত্রুটি হয়েছে। নেটওয়ার্ক সংযোগ পরীক্ষা করুন বা পরে আবার চেষ্টা করুন।</p>';
+                    console.error("LLM API কল করার সময় ত্রুটি:", error);
+            } finally {
+                analyzeTextEl.classList.remove('hidden');
+                analyzeSpinnerEl.classList.add('hidden');
+                analyzeSpendingBtn.disabled = false;
+            }
+        }
+
+        // Function to suggest a category using Gemini API
+        async function suggestCategory(descriptionElement, categoryElement) {
+            const description = descriptionElement.value.trim();
+            if (!description) {
+                displayMessage("ক্যাটাগরি সাজেস্ট করার জন্য একটি বিবরণ লিখুন।", "error");
+                return;
+            }
+
+            const originalButtonText = categoryElement === incomeCategoryEl ? suggestIncomeCategoryBtn.innerHTML : suggestExpenseCategoryBtn.innerHTML;
+            const buttonToUpdate = categoryElement === incomeCategoryEl ? suggestIncomeCategoryBtn : suggestExpenseCategoryBtn;
+
+            buttonToUpdate.disabled = true;
+            buttonToUpdate.innerHTML = `<span class="loading-spinner"></span> লোড হচ্ছে...`;
+
+            const prompt = `Categorize the following transaction description into a single, concise category (e.g., 'Food', 'Transport', 'Utilities', 'Salary', 'Rent', 'Entertainment', 'Shopping', 'Health', 'Education', 'Savings', 'Other'). Respond with only the category name in Bengali. If the description is clearly income, suggest an income category like 'বেতন', 'বোনাস', 'বিনিয়োগ আয়'. If it's an expense, suggest an expense category.
+            Description: "${description}"`;
+
+            let chatHistory = [];
+            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+            const payload = { contents: chatHistory };
+            const apiKey = ""; // Canvas will automatically provide the API key.
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const category = result.candidates[0].content.parts[0].text.trim();
+                    categoryElement.value = category;
+                    displayMessage("ক্যাটাগরি সাজেস্ট করা হয়েছে!", "success");
+                } else {
+                    displayMessage("ক্যাটাগরি পেতে ব্যর্থ।", "error");
+                    console.error("LLM প্রতিক্রিয়া অপ্রত্যাশিত কাঠামোতে এসেছে:", result);
+                }
+            } catch (error) {
+                displayMessage("ক্যাটাগরি সাজেস্ট করতে ত্রুটি হয়েছে।", "error");
+                console.error("LLM API কল করার সময় ত্রুটি:", error);
+            } finally {
+                buttonToUpdate.disabled = false;
+                buttonToUpdate.innerHTML = originalButtonText; // Restore original button text
+            }
+        }
+
+
+        // Function to export transactions to CSV
+        function exportTransactionsToCsv() {
+            const transactionsToExport = allTransactions.filter(t => t.accountId === selectedAccountId);
+
+            if (transactionsToExport.length === 0) {
+                displayMessage("CSV এক্সপোর্ট করার জন্য এই একাউন্টে কোনো লেনদেন নেই।", "error");
+                return;
+            }
+
+            let csvContent = "তারিখ,বিবরণ,পরিমাণ,প্রকার,ক্যাটাগরি,একাউন্ট আইডি\n"; // CSV header
+
+            transactionsToExport.forEach(t => {
+                const date = new Date(t.timestamp).toLocaleDateString('bn-BD');
+                // Escape commas in description if any, by enclosing in double quotes
+                const description = `"${t.description.replace(/"/g, '""')}"`;
+                const amount = t.amount.toFixed(2);
+                const type = t.type === 'income' ? 'আয়' : 'ব্যয়';
+                const category = `"${(t.category || 'অশ্রেণীবদ্ধ').replace(/"/g, '""')}"`; // Include category
+                const accountId = t.accountId;
+                csvContent += `${date},${description},${amount},${type},${category},${accountId}\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `transactions_${selectedAccountId || 'all'}_${new Date().toISOString().slice(0,10)}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            displayMessage("CSV ফাইল সফলভাবে এক্সপোর্ট করা হয়েছে!", "success");
+        }
+
+        // Dark Mode Logic
+        function enableDarkMode() {
+            document.body.classList.add('dark-mode');
+            localStorage.setItem('theme', 'dark');
+            themeIcon.textContent = '🌙'; // Moon icon for dark mode
+            themeText.textContent = 'লাইট মোড';
+        }
+
+        function disableDarkMode() {
+            document.body.classList.remove('dark-mode');
+            localStorage.setItem('theme', 'light');
+            themeIcon.textContent = '☀️'; // Sun icon for light mode
+            themeText.textContent = 'ডার্ক মোড';
+        }
+
+        // Check for saved theme preference on load
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            enableDarkMode();
+        } else {
+            disableDarkMode(); // Default to light mode if no preference or 'light'
+        }
+
+        // Function to copy full code to clipboard
+        function copyFullCode() {
+            fullCodeTextarea.select();
+            document.execCommand('copy'); // Use execCommand for broader compatibility in iframes
+            displayMessage("সম্পূর্ণ কোড কপি করা হয়েছে!", "success");
+        }
+
+        // Event Listeners
+        addnewAccountBtn.addEventListener('click', addAccount);
+
+        accountSelectEl.addEventListener('change', (e) => {
+            selectedAccountId = e.target.value;
+            updateSelectedAccountDisplay();
+            filterAndRenderTransactions();
+        });
+
+        addIncomeBtn.addEventListener('click', () => {
+            addTransaction(incomeDescriptionEl.value, incomeAmountEl.value, 'income', incomeCategoryEl.value);
+            incomeDescriptionEl.value = '';
+            incomeAmountEl.value = '';
+            incomeCategoryEl.value = '';
+        });
+
+        addExpenseBtn.addEventListener('click', () => {
+            addTransaction(expenseDescriptionEl.value, expenseAmountEl.value, 'expense', expenseCategoryEl.value);
+            expenseDescriptionEl.value = '';
+            expenseAmountEl.value = '';
+            expenseCategoryEl.value = '';
+        });
+
+        transactionsListEl.addEventListener('click', (e) => {
+            if (e.target.closest('.delete-btn')) {
+                const id = e.target.closest('.delete-btn').dataset.id;
+                deleteTransaction(id);
+            }
+        });
+
+        analyzeSpendingBtn.addEventListener('click', analyzeSpending);
+        exportCsvBtn.addEventListener('click', exportTransactionsToCsv); // Event listener for new export button
+
+        // New event listeners for category suggestion buttons
+        suggestIncomeCategoryBtn.addEventListener('click', () => suggestCategory(incomeDescriptionEl, incomeCategoryEl));
+        suggestExpenseCategoryBtn.addEventListener('click', () => suggestCategory(expenseDescriptionEl, expenseCategoryEl));
+
+        // Dark mode toggle event listener
+        darkModeToggle.addEventListener('click', () => {
+            if (document.body.classList.contains('dark-mode')) {
+                disableDarkMode();
+            } else {
+                enableDarkMode();
+            }
+        });
+
+        // Event listeners for new code section
+        toggleCodeBtn.addEventListener('click', () => {
+            if (codeContainer.classList.contains('hidden')) {
+                fullCodeTextarea.value = document.documentElement.outerHTML; // Get full HTML
+                codeContainer.classList.remove('hidden');
+            } else {
+                codeContainer.classList.add('hidden');
+                fullCodeTextarea.value = ''; // Clear textarea when hidden
+            }
+        });
+
+        copyCodeBtn.addEventListener('click', copyFullCode);
+
+        // Initial setup (Firebase listeners will handle initial data load)
+        // No need to call updateBalance() or renderTransactions() here directly
+        // as onSnapshot listeners will trigger them once data is available.
+    </script>
+</body>
+</html>
