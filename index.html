@@ -395,17 +395,18 @@
     </div>
 
     <script>
-      // TODO: Replace this with your actual Firebase project configuration
-      // You can find this in your Firebase project settings.
-      window.__firebase_config = JSON.stringify({
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_AUTH_DOMAIN",
+      // Firebase project configuration
+      const __firebase_config = {
+        apiKey: "YOUR_FIREBASE_API_KEY",
+        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
         projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_STORAGE_BUCKET",
+        storageBucket: "YOUR_PROJECT_ID.appspot.com",
         messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-        appId: "YOUR_APP_ID",
+        appId: "YOUR_FIREBASE_APP_ID",
         measurementId: "YOUR_MEASUREMENT_ID" // Optional
-      });
+      };
+      const __app_id = 'my-tracker-app';
+      const __gemini_api_key__ = 'YOUR_GEMINI_API_KEY';
     </script>
     <script type="module">
         // Firebase imports
